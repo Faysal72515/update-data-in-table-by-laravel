@@ -1,0 +1,103 @@
+Observe the following example to understand more about updating records −
+
+Step 1 − Execute the below command to create a controller called StudViewController.
+php artisan make:controller StudUpdateController --plain
+
+-----------------------------------------------
+Step 2 − Copy the following code to file app/Http/Controllers/ StudUpdateController.php
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use DB;
+use App\Http\Requests;
+use App\Http\Controllers\Controller;
+
+class StudUpdateController extends Controller {
+   public function index() {
+      $users = DB::select('select * from student');
+      return view('stud_edit_view',['users'=>$users]);
+   }
+   public function show($id) {
+      $users = DB::select('select * from student where id = ?',[$id]);
+      return view('stud_update',['users'=>$users]);
+   }
+   public function edit(Request $request,$id) {
+      $name = $request->input('stud_name');
+      DB::update('update student set name = ? where id = ?',[$name,$id]);
+      echo "Record updated successfully.<br/>";
+      echo '<a href = "/edit-records">Click Here</a> to go back.';
+   }
+}
+
+-----------------------------------------------
+
+Step 3 − Create a view file called
+resources/views/stud_edit_view.blade.php and copy the following code in that file.
+
+<html>
+   <head>
+      <title>View Student Records</title>
+   </head>
+   
+   <body>
+      
+      <table border = "1">
+         <tr>
+            <td>ID</td>
+            <td>Name</td>
+            <td>Edit</td>
+         </tr>
+         @foreach ($users as $user)
+         <tr>
+            <td>{{ $user->id }}</td>
+            <td>{{ $user->name }}</td>
+            <td><a href = 'edit/{{ $user->id }}'>Edit</a></td>
+         </tr>
+         @endforeach
+      </table>
+   </body>
+</html>
+
+-----------------------------------------------
+Step 4-Create another view file called
+
+resources/views/stud_update.php and copy the following code in that file.
+
+
+<html>
+   
+   <head>
+      <title>Student Management | Edit</title>
+   </head>
+   
+   <body>
+      <form action = "/edit/<?php echo $users[0]->id; ?>" method = "post">
+         <input type = "hidden" name = "_token" value = "<?php echo csrf_token(); ?>">
+      
+         <table>
+            <tr>
+               <td>Name</td>
+               <td>
+                  <input type = 'text' name = 'stud_name' 
+                     value = '<?php echo$users[0]->name; ?>'/>
+               </td>
+            </tr>
+            <tr>
+               <td colspan = '2'>
+                  <input type = 'submit' value = "Update student" />
+               </td>
+            </tr>
+         </table>
+      </form>
+   </body>
+</html>
+
+------------------------------------------------------
+Step 5− Add the following lines in app/Http/routes.php.
+
+Route::get('edit-records','StudUpdateController@index');
+Route::get('edit/{id}','StudUpdateController@show');
+Route::post('edit/{id}','StudUpdateController@edit');
